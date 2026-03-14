@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Ordenar Personas</title>
+<meta charset="UTF-8">
+<style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f9fbff; color: #333; margin: 20px; }
+    h2 { color: #0a4d8f; }
+    .contenedor { max-width: 840px; margin: auto; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ccd6e0; padding: 10px; text-align: left; }
+    th { background: #1c62bb; color: white; font-weight: 600; }
+    tr:nth-child(even) { background: #f3f7ff; }
+    button, input[type=file] { padding: 8px 14px; margin-right: 8px; border-radius: 4px; border: 1px solid #1c62bb; background: #1c62bb; color: white; cursor: pointer; }
+    button:hover { background: #14499a; }
+    #mensaje { margin-top: 12px; color: #0a4d8f; font-weight: 600; }
+</style>
+</head>
+
+<body>
+<div class="contenedor">
+<h2>Subir archivo de personas</h2>
+<div id="mensaje"></div>
+
+<input type="file" id="file">
+<button onclick="enviar()">Ordenar</button>
+
+<br><br>
+
+<table border="1" id="tabla">
+<tr>
+<th>Nombre</th>
+<th>Edad</th>
+<th>Ciudad</th>
+</tr>
+</table>
+
+<script>
+
+async function enviar(){
+    const mensaje = document.getElementById("mensaje")
+    mensaje.textContent = ''
+
+    const archivo = document.getElementById("file").files[0]
+    if (!archivo) {
+        mensaje.textContent = 'Por favor selecciona un archivo antes de ordenar.'
+        return
+    }
+
+    const formData = new FormData()
+    formData.append("file", archivo)
+
+    try {
+        const respuesta = await fetch("http://127.0.0.1:5000/upload",{
+            method:"POST",
+            body: formData
+        })
+
+        if (!respuesta.ok) {
+            const errorRespuesta = await respuesta.json().catch(() => null)
+            mensaje.textContent = errorRespuesta && errorRespuesta.error ? errorRespuesta.error : 'Error en el servidor: ' + respuesta.status
+            return
+        }
+
+        const datos = await respuesta.json()
+
+        const tabla = document.getElementById("tabla")
+        tabla.innerHTML = `
+        <tr>
+        <th>Nombre</th>
+        <th>Edad</th>
+        <th>Ciudad</th>
+        </tr>
+        `
+
+        if (!Array.isArray(datos) || datos.length === 0) {
+            mensaje.textContent = 'No hay registros válidos en el archivo (formato: Nombre,Edad,Ciudad).'
+            return
+        }
+
+        datos.forEach(p => {
+            tabla.innerHTML += `
+            <tr>
+            <td>${p.nombre}</td>
+            <td>${p.edad}</td>
+            <td>${p.ciudad}</td>
+            </tr>
+            `
+        })
+
+        mensaje.textContent = `Se ordinaron ${datos.length} registros correctamente.`
+
+    } catch (error) {
+        mensaje.textContent = 'Error de conexión: ' + error.message
+    }
+}
+
+</script>
+
+</body>
+</html>

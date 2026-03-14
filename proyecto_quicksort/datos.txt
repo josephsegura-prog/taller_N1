@@ -1,0 +1,6 @@
+Luis,20,Cali
+Carlos,25,Bogota
+Ana,30,Medellin
+Pedro,40,Barranquilla
+Maria,22,Bucaramanga
+Jorge,28,Cartagena
